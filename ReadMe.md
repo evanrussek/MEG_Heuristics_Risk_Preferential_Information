@@ -56,7 +56,7 @@ Good_channels: list of good channels for each participant (created in epoch trai
 
 Classifier_Activations: Created in trainclassifier scripts, but also saved.
 Activations of trained classifiers on held-out localizer data (Loc_Reactivations) for a variety of settings
-and also on Task_Choice_Epoched_Data, at best performing L1 (.002).
+and also on Task_Choice_Epoched_Data, at best performing L1.
 
 Behavioral_Params: Each participants behavioral parameters from Additive Heuristic Model, and also BIS score.
 
