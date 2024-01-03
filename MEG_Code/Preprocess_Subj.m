@@ -16,7 +16,7 @@ else
 end
 
 % just start with the first block
-for run_num_idx = 2:length(run_vec)
+for run_num_idx = 1:length(run_vec)
     
     run_num = run_vec(run_num_idx);
     inSt = num2str(run_num, '%02d');
@@ -135,9 +135,7 @@ for run_num_idx = 2:length(run_vec)
     opt3.africa.ident.artefact_chans    = {'EOG1','EOG2','EOG3'};
     opt3.africa.precompute_topos = false;
     opt3.africa.ident.mains_kurt_thresh = 0.5;
-    %opt3.africa.ident.func = @identify_artefactual_components_auto;
-    %             opt3.africa.ident.max_num_artefact_comps = 50;
-    opt3.africa.ident.do_kurt = true; % previous it is TRUE!
+    opt3.africa.ident.do_kurt = true; 
     opt3.africa.ident.do_cardiac = true;
     opt3.africa.ident.do_plots = true;
     opt3.africa.ident.do_mains = false;
@@ -169,10 +167,10 @@ for run_num_idx = 2:length(run_vec)
 
     %% coreg for subsequent source analysis - Already Done!
     opt4.coreg.do=1;
-    opt4.coreg.use_rhino=0; % unless have head point data?
+    opt4.coreg.use_rhino=0; 
     opt4.coreg.useheadshape=0;
 
-                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%           
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%           
     % turn the remaining options off
     opt4.maxfilter.do=0;
     opt4.convert.spm_files_basenames = opt3.results.spm_files_basenames;
