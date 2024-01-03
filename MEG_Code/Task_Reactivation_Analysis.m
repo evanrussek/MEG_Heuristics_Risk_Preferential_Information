@@ -1,5 +1,4 @@
-% Analyze Task Reactivations. Makes all Task Reactivaiton Figures. Here, we
-% remove bad trials from the main task...
+% Analyze Task Reactivations. Makes all Task Reactivaiton Figures.
 
 % Enter MEG Decision Study Folder
 study_folder = '/Users/erussek/Dropbox/MEG_Decision_Study_WC';
@@ -7,9 +6,9 @@ study_folder = '/Users/erussek/Dropbox/MEG_Decision_Study_WC';
 % run permutations and save figs?
 run_permutations = false;
 make_permutation_plots = false;
-run_permutations_key = true;
-make_permutation_plots_key = true;
-NPerm = 2000;
+run_permutations_key = false;
+make_permutation_plots_key = false;
+NPerm = 2;
 save_all_figs = false;
 save_perm_dists = false;
 
@@ -45,6 +44,7 @@ end
 
 %% LOAD REACTIVATION DATA
 group_struc_folder = fullfile(study_folder, 'Classifier_Activations', 'Task_Reactivations');
+% group_struc_folder = fullfile(study_folder, 'Classifier_Activations_Test', 'Task_Reactivations');
 
 subj_rp_data = cell(NS,1);
 for s_idx = 1:NS
@@ -57,25 +57,17 @@ for s_idx = 1:NS
     subj_rp_data{s_idx}  = 1 ./ (1 + exp(-temp.predact_mtx));
 end
 
-%% LOAD GOOD TASK TRIALS
-subj_good_trials = cell(NS,1);
-
-for s_idx = 1:NS
-    s_num = subj_list(s_idx);
-    temp = load(fullfile(study_folder, 'Epoched_Data_Revised_BT', 'Epoched_Task_Choice_Data_BT', ['Subj_', num2str(s_num), '_Epoched_Task_Choice_Data.mat']),  'task_good_trial');    
-    subj_good_trials{s_idx} = cat(1, temp.task_good_trial{:});
-end
-
 %% LOAD BEHAVIORAL COVARIATES
 temp = load(fullfile(study_folder, 'Behavioral_Params.mat'));
 beh_params = temp.Beh_Params;
 
-%% Run first level to predict O1 vs O2 from between trial conditions
 
+%% Run first level to predict O1 vs O2 from between trial conditions
 
 % structure to store betas
 NBetas = 2; % one beta for prob effect and one beta for reward effect
 first_level_betas = zeros(NS, NBetas, NTr, NTe);
+min_rt = 500;
 for s_idx = 1:NS
     
     % get RP O2 - O1 diff -- var to be predited
@@ -84,19 +76,19 @@ for s_idx = 1:NS
 
     % make design matrix
     subj_table = choice_info_tables{s_idx};
+    keep_trials = find(subj_table.rt >= min_rt); 
     abs_rew_diff = abs(subj_table.o2_val) - abs(subj_table.o1_val);
     prob_diff = (5 - subj_table.choice_number)./5 - .5; % prob related to choice number
     X = [ones(length(prob_diff),1),prob_diff, abs_rew_diff];
 
-    % run regression separately for each test time-point
+    % run regression separately for each train time-point
     temp_betas = zeros(size(X,2), size(rp_diff,2), size(rp_diff,3));
-    for test_idx = 1:size(rp_diff,3) 
-      %  keyboard
-        keep_trials = find((subj_table.rt >= delay_vals_test(test_idx)) & (subj_good_trials{s_idx}(:,test_idx) > 0)); % keep this?
-        temp_betas(:,:, test_idx) = pinv(X(keep_trials,:))*squeeze(rp_diff(keep_trials,:,test_idx));
+    for tt_idx = 1:size(rp_diff,2) % run down test_idx... % can run through this more dynamically...
+        temp_betas(:,tt_idx, :) = pinv(X(keep_trials,:))*squeeze(rp_diff(keep_trials,tt_idx,:));
     end
     first_level_betas(s_idx,:,:,:) = temp_betas(2:3,:,:); % don't need intercept
 end
+    
 
 %% which subjs to use for each analysis -- note no BIS data for subj. 1.
 keep_subj_neural = 1:NS;
@@ -124,7 +116,7 @@ colorbar
 % run permutation test
 if run_permutations_key
     display("Running Neural Prob Beh Prob Permutations");
-    neur_prob_beh_prob_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm);
+    neur_prob_beh_prob_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,:),behavioral_betas, NPerm);
 end
 
 % plot permutation distribution and compute significance...
@@ -138,7 +130,7 @@ if make_permutation_plots_key
     xlabel('t-statistic')
     ylabel('Number of permutations')
 end
-% keyboard
+
 
 %% make the raw plot
 fig_idx = fig_idx + 1; close(figure(fig_idx)); figure(fig_idx);
@@ -161,7 +153,7 @@ colorbar
 % run permutation test
 if  run_permutations
     display("Running Neural Prob Beh Rew Permutations");
-    neur_prob_beh_rew_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm);
+    neur_prob_beh_rew_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,:),behavioral_betas, NPerm);
 end
 
 % plot permutation distribution and compute significance...
@@ -197,7 +189,7 @@ colorbar
 % run permutation test
 if run_permutations_key
     display("Running Neural Rew Beh Rew Permutations");
-    neur_rew_beh_rew_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm);
+    neur_rew_beh_rew_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,1:end),behavioral_betas, NPerm);
 end
 
 % plot permutation distribution and compute significance...
@@ -216,7 +208,6 @@ end
 fig_idx = fig_idx + 1; close(figure(fig_idx)); figure(fig_idx);
 make_raw_plot(neural_betas,behavioral_betas,delay_vals_train, delay_vals_test,train_time,test_time);
 
-
 %%  predict rew neural. from prob. behavior
 behavioral_betas = beh_params.beta_prob(keep_subj_beh);
 neural_betas = squeeze(first_level_betas(keep_subj_neural,2,:,:)); % this is the prob effect
@@ -234,7 +225,7 @@ axis square; colorbar;
 % run permutation test
 if run_permutations
     display("Running Neural Rew Beh Rew Permutations");
-    neur_rew_beh_prob_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm);
+    neur_rew_beh_prob_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,1:end),behavioral_betas, NPerm);
 end
 
 % plot permutation distribution and compute significance...
@@ -277,7 +268,7 @@ colorbar
 % run permutation test
 if run_permutations_key
     display("Running Neural Safe Beh Rew Permutations");
-    neur_safe_beh_rew_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm);
+    neur_safe_beh_rew_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,1:end),behavioral_betas, NPerm);
     xlabel('t-statistic')
     ylabel('Number of permutations')
 end
@@ -317,7 +308,7 @@ colorbar
 % run permutation test
 if run_permutations
     display("Running Neural Safe Beh Rew Permutations");
-    neur_safe_beh_prob_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm);
+    neur_safe_beh_prob_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,1:end),behavioral_betas, NPerm);
     xlabel('t-statistic')
     ylabel('Number of permutations')
 end
@@ -351,7 +342,7 @@ colorbar
 % run permutation test
 if run_permutations_key
     display("Running Neural Prob BIS Permutations");
-    neur_prob_beh_BIS_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,3:end),behavioral_betas, NPerm, true);
+    neur_prob_beh_BIS_perm_dist = run_btw_subj_permutation(neural_betas(:,3:end,:),behavioral_betas, NPerm, true);
 end
 
 % plot permutation distribution and compute significance...
