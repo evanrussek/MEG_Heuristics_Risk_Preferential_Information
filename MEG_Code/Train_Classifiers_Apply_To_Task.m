@@ -18,7 +18,7 @@ mkdir(group_struc_folder);
 % parameters for the classifier
 penalty_l1 = .002; % L1 lasso penalty
 penalty_l2 = 0; % L2 lasso penalty
-prop_null = .75; % proportion of null data to include
+prop_null = 1; % proportion of null data to include
 which_train_images = 1:3; % which images to build classifiers
 n_tp_embed = 0; % how many time-points to include aroudn key-timepoint
 
