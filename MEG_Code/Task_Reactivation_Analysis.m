@@ -82,7 +82,7 @@ for s_idx = 1:NS
 
     % run regression separately for each train time-point
     temp_betas = zeros(size(X,2), size(rp_diff,2), size(rp_diff,3));
-    for tt_idx = 1:size(rp_diff,2) % run down test_idx... % can run through this more dynamically...
+    for tt_idx = 1:size(rp_diff,2) 
         temp_betas(:,tt_idx, :) = pinv(X(keep_trials,:))*squeeze(rp_diff(keep_trials,tt_idx,:));
     end
     first_level_betas(s_idx,:,:,:) = temp_betas(2:3,:,:); % don't need intercept
