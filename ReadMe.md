@@ -43,7 +43,7 @@ All_Event_Info_Tables: Includes the time-point and information around each event
 
 Preprocessed_Data: Includes for each subject, for each run, 'Adffspmeeg' spm file, which is preprocessed data (see preprocessing script for steps involved).
 
-Epoched_Data (created in epoching scripts, but also saved):
+Epoched_Data:
 
 Includes Localizer data, Epoched_Train_Data: Data epoched (-250 ms to 650 ms) around each stimulus onset in localizer task. 
 and Task Data: Epoched_Task_Choice_Data: Data epoched 0 ms to 500 ms around each probability stimulus onset in decisoin making task.
