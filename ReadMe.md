@@ -20,11 +20,6 @@ Scripts were run in Matlab, version 2022b. Note that both epoching scripts requi
 
 In order, they should be run:
 
-Epoch_Train_Data.m: Epochs preprocessed localizer data from -250 ms to 650 ms around each image onset, places in Epoched_Data/Epoched_Train_Data.
-Also identifies good MEG channels and saves this in Epoched_Data/Good_channels
-
-Epoch_Task_Choice_Data.m: Epochs preprocessed task data from 0 ms to 500 ms following each probability stimulus onset, places in Epoched_Data/Epoched_Task_Choice_Data.
-
 Train_Classifiers_Apply_To_Task: Trains classifier for each outcome for each traintimepoint (0 - 500 ms) and aplies each classifier to epoched task choice data.
 Reactivations from task are saved in Classifier_Activations/Task_Reactivations.
 
@@ -48,9 +43,9 @@ All_Event_Info_Tables: Includes the time-point and information around each event
 
 Preprocessed_Data: Includes for each subject, for each run, 'Adffspmeeg' spm file, which is preprocessed data (see preprocessing script for steps involved).
 
-Epoched_Data (created in epoching scripts, but also saved):
+Epoched_Data.
 
-Includes Localizer data, Epoched_Train_Data: Data epoched (-250 ms to 650 ms) around each stimulus onset in localizer task. 
+Includes Localizer data, Epoched_Train_Data: Data epoched around each stimulus onset in localizer task. 
 and Task Data: Epoched_Task_Choice_Data: Data epoched 0 ms to 500 ms around each probability stimulus onset in decisoin making task.
 Good_channels: list of good channels for each participant (created in epoch train data script).
 
