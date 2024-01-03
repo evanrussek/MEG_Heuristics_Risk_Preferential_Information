@@ -33,29 +33,7 @@ function evaluate_add(p_o1, o1_val, o2_val, safe_val, prob_beta, rew_beta, accep
         win_prob = (1 - p_o1) - p_o1;
     end
     
-    accept_val = accept_bias + prob_beta*win_prob + rew_beta*(mean([o1_val , o2_val])); ## does this make sense???? 
-    reject_val = rew_beta*safe_val;
-    
-    return [reject_val, accept_val];
-end
-
-# additive evaluation
-function evaluate_add2(p_o1, o1_val, o2_val, safe_val, prob_beta, rew_beta, accept_bias)
-    
-    # beta_reward*trig
-    if o1_val > o2_val 
-        win_prob = p_o1 - (1 - p_o1);
-    else
-        win_prob = (1 - p_o1) - p_o1;
-    end
-    
-    if abs(o1_val) > abs(o2_val)
-        rew_part = o1_val/2;
-    else
-        rew_part = o2_val/2;
-    end
-    
-    accept_val = accept_bias + prob_beta*win_prob + rew_beta*rew_part; ## does this make sense???? 
+    accept_val = accept_bias + prob_beta*win_prob + rew_beta*(mean([o1_val , o2_val]));
     reject_val = rew_beta*safe_val;
     
     return [reject_val, accept_val];
@@ -65,29 +43,6 @@ end
 ########################################
 # Probability Distortion
 #######################################
-
-# Prelec- 2 parameter version, set delta to 1 for 1 parameter version
-function warp_prob_Prelec(p_o1, o1_val, o2_val, gamma,delta)
-    p_o2 = 1 - p_o1;
-    # warp the one which is the trigger and take the other to be 1 minus that
-    
-    if abs(o1_val) > abs(o2_val)
-        if p_o1 < 1e-20
-            p_o1_new = 0;
-        else
-            p_o1_new = exp(-delta*(-log(p_o1))^gamma)
-        end
-    else
-        if p_o2 < 1e-20
-            p_o2_new = 0;
-        else
-            p_o2_new = exp(-delta*(-log(p_o2))^gamma)
-        end
-        p_o1_new = 1 - p_o2_new;
-    end
-    return p_o1_new;
-end
-
 
 function warp_prob_Prelec2(p_o1, o1_val, o2_val, gamma,delta)
     p_o2 = 1 - p_o1;
@@ -228,8 +183,6 @@ function MEG_val_lik(params, sub_data; warp_prob = 0, sub_baseline = true, use_a
                 
         # warp probs
         if warp_prob > 0
-            #p_o1_warp = warp_prob_Prelec(p_o1, o1_val, o2_val, gamma, delta)
-            #(p_o1_warp, p_o2_warp) = warp_prob_Prelec2(p_o1, o1_val, o2_val, gamma, delta)
             
             if warp_fun == "Prelec"
                 (p_o1_warp, p_o2_warp) = warp_prob_Prelec2(p_o1, o1_val, o2_val, gamma, delta)
@@ -248,14 +201,11 @@ function MEG_val_lik(params, sub_data; warp_prob = 0, sub_baseline = true, use_a
         
         if use_additive
             option_vals = evaluate_add(p_o1, o1_val, o2_val, safe_val, prob_beta, rew_beta, accept_bias);
-        elseif use_additive2
-            option_vals = evaluate_add2(p_o1, o1_val, o2_val, safe_val, prob_beta, rew_beta, accept_bias);
         else
             option_vals = evaluate_mult(p_o1_warp, p_o2_warp, o1_u, o2_u, safe_u, choice_beta, accept_bias);
         end
         
         if simulate
-            #println(option_vals[2]);
             accept_prob[trial_idx] = exp(option_vals[2])/sum(exp.(option_vals));
         else
             if (rt_cond == "none") | ((rt_cond == "high") &  (high_rt == 1)) | ((rt_cond == "low") & (high_rt == 0))
