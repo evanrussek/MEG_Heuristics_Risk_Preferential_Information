@@ -6,9 +6,9 @@ study_folder = '/Users/erussek/Dropbox/MEG_Decision_Study_WC';
 % run permutations and save figs?
 run_permutations = false;
 make_permutation_plots = false;
-run_permutations_key = false;
-make_permutation_plots_key = false;
-NPerm = 2;
+run_permutations_key = true;
+make_permutation_plots_key = true;
+NPerm = 5000;
 save_all_figs = false;
 save_perm_dists = false;
 
@@ -44,6 +44,7 @@ end
 
 %% LOAD REACTIVATION DATA
 group_struc_folder = fullfile(study_folder, 'Classifier_Activations', 'Task_Reactivations');
+% group_struc_folder = fullfile(study_folder, 'Classifier_Activations_Test', 'Task_Reactivations');
 
 subj_rp_data = cell(NS,1);
 for s_idx = 1:NS
@@ -63,10 +64,13 @@ beh_params = temp.Beh_Params;
 
 %% Run first level to predict O1 vs O2 from between trial conditions
 
+
+
 % structure to store betas
 NBetas = 2; % one beta for prob effect and one beta for reward effect
 first_level_betas = zeros(NS, NBetas, NTr, NTe);
-min_rt = 500;
+first_level_RP_safe = zeros(NS,NTr,NTe);
+
 for s_idx = 1:NS
     
     % get RP O2 - O1 diff -- var to be predited
@@ -75,25 +79,30 @@ for s_idx = 1:NS
 
     % make design matrix
     subj_table = choice_info_tables{s_idx};
-    keep_trials = find(subj_table.rt >= min_rt); 
     abs_rew_diff = abs(subj_table.o2_val) - abs(subj_table.o1_val);
     prob_diff = (5 - subj_table.choice_number)./5 - .5; % prob related to choice number
     X = [ones(length(prob_diff),1),prob_diff, abs_rew_diff];
 
-    % run regression separately for each train time-point
+    % run regression separately for each test time-point
     temp_betas = zeros(size(X,2), size(rp_diff,2), size(rp_diff,3));
-    for tt_idx = 1:size(rp_diff,2) 
-        temp_betas(:,tt_idx, :) = pinv(X(keep_trials,:))*squeeze(rp_diff(keep_trials,tt_idx,:));
+    for test_idx = 1:size(rp_diff,3) 
+        keep_trials = find((subj_table.rt >= delay_vals_test(test_idx)));
+
+        temp_betas(:,:, test_idx) = pinv(X(keep_trials,:))*squeeze(rp_diff(keep_trials,:,test_idx));
+
+        first_level_RP_safe(s_idx,:,test_idx) = squeeze(mean(rp_data(keep_trials,:,test_idx,3),1));
+
     end
     first_level_betas(s_idx,:,:,:) = temp_betas(2:3,:,:); % don't need intercept
 end
-    
+
 
 %% which subjs to use for each analysis -- note no BIS data for subj. 1.
 keep_subj_neural = 1:NS;
 keep_subj_neuralQ = 2:NS;
 keep_subj_beh = 1:NS;
 keep_subj_BIS = 2:NS;
+
 
 
 %% Predict prob beh. from prob. neural
@@ -240,11 +249,7 @@ end
 fig_idx = fig_idx + 1; close(figure(fig_idx)); figure(fig_idx);
 make_raw_plot(neural_betas,behavioral_betas,delay_vals_train, delay_vals_test,train_time,test_time);
 %% Safe Activation - Reward Relationship
-first_level_RP_safe = zeros(NS,NTr,NTe);
-for s_idx = 1:NS
-    rp_data = subj_rp_data{s_idx};
-    first_level_RP_safe(s_idx,:,:) = squeeze(mean(rp_data(:,:,:,3),1));
-end
+
 
 behavioral_betas = beh_params.beta_rew(keep_subj_beh);
 neural_betas = squeeze(first_level_RP_safe(keep_subj_neural,:,:)); % this is the prob effect
@@ -261,6 +266,7 @@ title("Neural Safe ~ Beh. Rew Relationship")
 axis square
 colorbar
 
+%%
 % run permutation test
 if run_permutations_key
     display("Running Neural Safe Beh Rew Permutations");
@@ -299,6 +305,7 @@ ylabel({'Train Timepoint (ms)'; 'Rel. Out. Stim. Onset'})
 title("Neural Safe ~ Beh. Prob. Relationship")
 axis square
 colorbar
+
 
 % run permutation test
 if run_permutations
@@ -393,6 +400,9 @@ end
 
 % run btw subj permutation
 function permutation_vals = run_btw_subj_permutation(neural_betas, behavioral_betas, NPerm, use_min)
+
+    %%  turn off regression warnings - necessary for permutation tests.
+    warning('off', 'all')
 
     if nargin < 4
         use_min = false;
