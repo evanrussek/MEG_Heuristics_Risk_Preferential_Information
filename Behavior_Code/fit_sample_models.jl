@@ -33,8 +33,6 @@ println("adding packages")
 
 # for reading in data
 
-#@everywhere project_folder = "/Users/evanrussek/meg_behavior";
-
 println("defining folders")
 if work_computer
     @everywhere project_folder = "C:\\Users\\erussek\\Documents\\GitHub\\meg_behavior";
