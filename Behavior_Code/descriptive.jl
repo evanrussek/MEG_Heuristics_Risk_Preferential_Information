@@ -13,7 +13,7 @@ using Interpolations # for flat smoothing over response rates / thresholds
 
 function clean_data(data_raw; bad_subs = [])
     data = @linq data_raw |> 
-        where(:block_number .> 7, .!ismissing.(:phase), :phase .== "TEST", :accept .!= "NA") |>
+        subset(:block_number .> 7, .!ismissing.(:phase), :phase .== "TEST", :accept .!= "NA") |>
         select(:s_num, :block_number, :safe_val_actual, :safe_val_base, :trigger_val_actual,
         :trigger_val_base, :other_noise, :o1_trigger, :gl_type, :accept, :rt, :phase, :p_trigger,
         :p_o1, :o1_val, :o2_val, :safe_val, :outcome_reached, :choice_number, :trial_number);
@@ -32,7 +32,7 @@ function clean_data(data_raw; bad_subs = [])
     data[!,:high_rt] = data[!,:med_rt] .<= data[!,:rt];
     
     for b in bad_subs
-        data = @where(data, :s_num .!= b);
+        data = @subset(data, :s_num .!= b);
     end
     data.sub = CategoricalArray(groupindices(groupby(data,:s_num)));
 
@@ -47,14 +47,14 @@ end
 
 function plot_subj_choice_data(data,s_num; include_rt = false)
     
-    s_data = @where(data, :s_num .== s_num);
+    s_data = @subset(data, :s_num .== s_num);
     task_s_num = s_data.s_num[1];
     s_accept_data = by(s_data, [:safe_val_base, :trigger_val_base, :p_trigger], :accept => mean);
     s_accept_data.safe_val_base_cat = CategoricalArray(Int64.(s_accept_data.safe_val_base));
     
     s_accept_data.gain = s_accept_data.safe_val_base .> 0;
     
-    gain_data = @where(s_accept_data, :safe_val_base .> 0)
+    gain_data = @subset(s_accept_data, :safe_val_base .> 0)
     
     # ... # ... #
     p_gain = plot(gain_data ,x = :p_trigger, y = :accept_mean, color = :safe_val_base_cat,
@@ -68,7 +68,7 @@ function plot_subj_choice_data(data,s_num; include_rt = false)
             Guide.title("Sub: $task_s_num Gain Trials"),
             Theme(line_width = 2pt));
 
-    loss_data = @where(s_accept_data, :safe_val_base .< 0)
+    loss_data = @subset(s_accept_data, :safe_val_base .< 0)
     p_loss = plot(loss_data ,x = :p_trigger, y = :accept_mean, color = :safe_val_base_cat,
             xgroup = :trigger_val_base,
             Scale.color_discrete(levels = unique(sort(loss_data.safe_val_base_cat))),
@@ -97,12 +97,12 @@ end
 function plot_subj_rt_by_cond(data, s_num)
 
     # plot the log_rt by condition...
-    s_data = @where(data, :sub .== s_num);
+    s_data = @subset(data, :sub .== s_num);
     s_data.log_rt = log.(s_data.rt);
     s_rt_data = by(s_data, [:safe_val_base, :trigger_val_base, :p_trigger], :log_rt => mean);
     s_rt_data.safe_val_base_cat = CategoricalArray(Int64.(s_rt_data.safe_val_base));
 
-    gain_data = @where(s_rt_data, :safe_val_base .> 0)
+    gain_data = @subset(s_rt_data, :safe_val_base .> 0)
     p_gain = plot(gain_data ,x = :p_trigger, y = :log_rt_mean, color = :safe_val_base_cat,
                 xgroup = :trigger_val_base,
                 Scale.color_discrete(levels = unique(sort(gain_data.safe_val_base_cat))),
@@ -114,7 +114,7 @@ function plot_subj_rt_by_cond(data, s_num)
                 Guide.title("Sub: $s_num Gain Trials"),
                 Theme(line_width = 2pt));
 
-    loss_data = @where(s_rt_data, :safe_val_base .< 0)
+    loss_data = @subset(s_rt_data, :safe_val_base .< 0)
     p_loss = plot(loss_data ,x = :p_trigger, y = :log_rt_mean, color = :safe_val_base_cat,
             xgroup = :trigger_val_base,
             Scale.color_discrete(levels = unique(sort(loss_data.safe_val_base_cat))),
@@ -137,7 +137,7 @@ function plot_group_choice_data(data; title_str = "")
 
     agg_accept_data.safe_val_base_cat = CategoricalArray(Int64.(agg_accept_data.safe_val_base));
 
-    gain_data = @where(agg_accept_data, :safe_val_base .> 0)
+    gain_data = @subset(agg_accept_data, :safe_val_base .> 0)
     gain_data.safe_val_base_cat = CategoricalArray(Int64.(gain_data.safe_val_base));
 
     # ... # ... #
@@ -152,7 +152,7 @@ function plot_group_choice_data(data; title_str = "")
             Guide.title("$title_str Gain Trials"),
             Theme(line_width = 2pt));
 
-    loss_data = @where(agg_accept_data, :safe_val_base .< 0);
+    loss_data = @subset(agg_accept_data, :safe_val_base .< 0);
     p_loss = plot(loss_data ,x = :p_trigger, y = :accept, color = :safe_val_base_cat,
             xgroup = :trigger_val_base,
             Scale.color_discrete(levels = unique(sort(loss_data.safe_val_base_cat))),
@@ -183,7 +183,7 @@ end;
 function plot_group_rt_data(data; title_str = "", plot_type = 2)
 
     agg_rt_data = make_agg_rt_data(data);
-    gain_data = @where(agg_rt_data, :safe_val_base .> 0)
+    gain_data = @subset(agg_rt_data, :safe_val_base .> 0)
     gain_data.safe_val_base_cat = CategoricalArray(Int64.(gain_data.safe_val_base));
 
     if plot_type == 1
@@ -200,7 +200,7 @@ function plot_group_rt_data(data; title_str = "", plot_type = 2)
                 Theme(line_width = 2pt));
 
 
-        loss_data = @where(agg_rt_data, :safe_val_base .< 0);
+        loss_data = @subset(agg_rt_data, :safe_val_base .< 0);
         p_loss = plot(loss_data ,x = :p_trigger, y = :log_rt, color = :safe_val_base_cat,
                 xgroup = :trigger_val_base,
                 Scale.color_discrete(levels = unique(sort(loss_data.safe_val_base_cat))),
@@ -226,7 +226,7 @@ function plot_group_rt_data(data; title_str = "", plot_type = 2)
                 Theme(line_width = 2pt));
 
 
-        loss_data = @where(agg_rt_data, :safe_val_base .< 0);
+        loss_data = @subset(agg_rt_data, :safe_val_base .< 0);
         p_loss = plot(loss_data ,x = :p_trigger, y = :log_rt, color = :safe_val_base_cat,
                 xgroup = :trigger_val_base,
                 Scale.color_discrete(levels = unique(sort(loss_data.safe_val_base_cat))),
@@ -256,15 +256,15 @@ end
 function plot_choice_sim_data_comp(data, simdata; title_str = "")
 
     agg_accept_data = make_agg_accept_data(data);
-    gain_data = @where(agg_accept_data, :safe_val_base .> 0)
+    gain_data = @subset(agg_accept_data, :safe_val_base .> 0)
     gain_data.safe_val_base_cat = CategoricalArray(Int64.(gain_data.safe_val_base));
-    loss_data = @where(agg_accept_data, :safe_val_base .< 0)
+    loss_data = @subset(agg_accept_data, :safe_val_base .< 0)
     loss_data.safe_val_base_cat = CategoricalArray(Int64.(loss_data.safe_val_base));
 
     agg_accept_sim = make_agg_accept_data(simdata)
-    gain_sim = @where(agg_accept_sim, :safe_val_base .> 0)
+    gain_sim = @subset(agg_accept_sim, :safe_val_base .> 0)
     gain_sim.safe_val_base_cat = CategoricalArray(Int64.(gain_sim.safe_val_base));
-    loss_sim = @where(agg_accept_sim, :safe_val_base .< 0)
+    loss_sim = @subset(agg_accept_sim, :safe_val_base .< 0)
     loss_sim.safe_val_base_cat = CategoricalArray(Int64.(loss_sim.safe_val_base));
 
 
@@ -308,21 +308,21 @@ function plot_choice_sim_data_comp2(data, ev_simdata, simdata2; title_str = "")
     simdata = ev_simdata
 
     agg_accept_data = make_agg_accept_data(data);
-    gain_data = @where(agg_accept_data, :safe_val_base .> 0)
+    gain_data = @subset(agg_accept_data, :safe_val_base .> 0)
     gain_data.safe_val_base_cat = CategoricalArray(Int64.(gain_data.safe_val_base));
-    loss_data = @where(agg_accept_data, :safe_val_base .< 0)
+    loss_data = @subset(agg_accept_data, :safe_val_base .< 0)
     loss_data.safe_val_base_cat = CategoricalArray(Int64.(loss_data.safe_val_base));
 
     agg_accept_sim = make_agg_accept_data(ev_simdata)
-    gain_sim = @where(agg_accept_sim, :safe_val_base .> 0)
+    gain_sim = @subset(agg_accept_sim, :safe_val_base .> 0)
     gain_sim.safe_val_base_cat = CategoricalArray(Int64.(gain_sim.safe_val_base));
-    loss_sim = @where(agg_accept_sim, :safe_val_base .< 0)
+    loss_sim = @subset(agg_accept_sim, :safe_val_base .< 0)
     loss_sim.safe_val_base_cat = CategoricalArray(Int64.(loss_sim.safe_val_base));
 
     agg_accept_sim2 = make_agg_accept_data(simdata2)
-    gain_sim2 = @where(agg_accept_sim2, :safe_val_base .> 0)
+    gain_sim2 = @subset(agg_accept_sim2, :safe_val_base .> 0)
     gain_sim2.safe_val_base_cat = CategoricalArray(Int64.(gain_sim2.safe_val_base));
-    loss_sim2 = @where(agg_accept_sim2, :safe_val_base .< 0)
+    loss_sim2 = @subset(agg_accept_sim2, :safe_val_base .< 0)
     loss_sim2.safe_val_base_cat = CategoricalArray(Int64.(loss_sim2.safe_val_base));
     
     
@@ -375,15 +375,15 @@ end
 function plot_choice_sim_data_comp_trig(data, simdata; title_str = "")
 
     agg_accept_data = make_agg_accept_data(data);
-    gain_data = @where(agg_accept_data, :safe_val_base .> 0)
+    gain_data = @subset(agg_accept_data, :safe_val_base .> 0)
     gain_data.safe_val_base_cat = CategoricalArray(Int64.(gain_data.safe_val_base));
-    loss_data = @where(agg_accept_data, :safe_val_base .< 0)
+    loss_data = @subset(agg_accept_data, :safe_val_base .< 0)
     loss_data.safe_val_base_cat = CategoricalArray(Int64.(loss_data.safe_val_base));
 
     agg_accept_sim = make_agg_accept_data(simdata)
-    gain_sim = @where(agg_accept_sim, :safe_val_base .> 0)
+    gain_sim = @subset(agg_accept_sim, :safe_val_base .> 0)
     gain_sim.safe_val_base_cat = CategoricalArray(Int64.(gain_sim.safe_val_base));
-    loss_sim = @where(agg_accept_sim, :safe_val_base .< 0)
+    loss_sim = @subset(agg_accept_sim, :safe_val_base .< 0)
     loss_sim.safe_val_base_cat = CategoricalArray(Int64.(loss_sim.safe_val_base));
 
 
@@ -418,15 +418,15 @@ end
 function plot_choice_sim_data_comp_safe(data, simdata; title_str = "")
 
     agg_accept_data = make_agg_accept_data(data);
-    gain_data = @where(agg_accept_data, :safe_val_base .> 0)
+    gain_data = @subset(agg_accept_data, :safe_val_base .> 0)
     gain_data.safe_val_base_cat = CategoricalArray(Int64.(gain_data.safe_val_base));
-    loss_data = @where(agg_accept_data, :safe_val_base .< 0)
+    loss_data = @subset(agg_accept_data, :safe_val_base .< 0)
     loss_data.safe_val_base_cat = CategoricalArray(Int64.(loss_data.safe_val_base));
 
     agg_accept_sim = make_agg_accept_data(simdata)
-    gain_sim = @where(agg_accept_sim, :safe_val_base .> 0)
+    gain_sim = @subset(agg_accept_sim, :safe_val_base .> 0)
     gain_sim.safe_val_base_cat = CategoricalArray(Int64.(gain_sim.safe_val_base));
-    loss_sim = @where(agg_accept_sim, :safe_val_base .< 0)
+    loss_sim = @subset(agg_accept_sim, :safe_val_base .< 0)
     loss_sim.safe_val_base_cat = CategoricalArray(Int64.(loss_sim.safe_val_base));
 
     p_gain = plot(gain_data ,x = :safe_val_base,
