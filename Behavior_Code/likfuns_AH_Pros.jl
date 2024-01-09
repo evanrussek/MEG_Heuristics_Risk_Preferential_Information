@@ -66,7 +66,6 @@ function warp_prob_power(p_o1, o1_val, o2_val, gamma,delta)
 end
     
 
-################################## L
 function warp_prob_lol(p_o1, o1_val, o2_val, gamma, delta)
     # "Gamma conrols curvature, delta controls elevation
     
@@ -160,7 +159,6 @@ function MEG_val_lik(params, sub_data; warp_prob = 0, sub_baseline = true, use_a
 
     for trial_idx in 1:n_trials
         
-       # println(trial_idx)
 
         choice_idx = Int.(sub_data[trial_idx, :choice_number]);
         p_o1 = choice_o1_prob[choice_idx];

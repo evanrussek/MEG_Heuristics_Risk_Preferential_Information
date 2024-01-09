@@ -57,32 +57,28 @@ end
 
 # read in data and clean
 data_raw = CSV.read("$project_folder/data/meg_behavior.csv", DataFrame);
-data = clean_data(data_raw; bad_subs = [1 4 8 19 20 23 24 26]);
+data = clean_data(data_raw);
 
 #### build models
 to_save_folder = "$project_folder/paper_model_fit_results";
 
 # EV, pros, additive, 
 use_additive_list = [false, false, true];
-use_additive2_list = [false, false, false];
-warp_prob_list = [0, 2, 0, 2];
+warp_prob_list = [0, 2, 0];
 warp_fun_list = ["none", "LOL", "none"];
-warp_util_list = [0, 2, 0, 2]; # how many utils to fit - use 1 or 2... 
-learn_prob_list = [false, false, false];
-sub_baseline_list = [false, false, false];
+warp_util_list = [0, 2, 0]; # how many utils to fit - use 1 or 2... 
 n_accept_bias_list = [0, 0, 2];
-add_choice_noise = false;
 n_delta_list = [0,1,0];
+rt_cond = "none"
 
 n_models = length(use_additive_list);
 
 for i in 1:n_models
 
-    rt_cond = "none";
     this_model = Dict();
-    (param_names, model_name) = build_names(use_additive_list[i],warp_prob_list[i],warp_util_list[i],learn_prob_list[i],sub_baseline_list[i],n_accept_bias_list[i], rt_cond, use_additive2_list[i]; add_choice_noise = false, fix_beta = false, warp_fun = warp_fun_list[i], n_delta = n_delta_list[i]);
+    (param_names, model_name) = build_names(use_additive_list[i],warp_prob_list[i],warp_util_list[i],learn_prob_list[i],sub_baseline_list[i],n_accept_bias_list[i], rt_cond, use_additive2_list[i];  fix_beta = false, warp_fun = warp_fun_list[i], n_delta = n_delta_list[i]);
 
-    lik_fun = (params_in, sub_data) -> build_lik(params_in, sub_data, use_additive_list[i],warp_prob_list[i],warp_util_list[i],learn_prob_list[i],sub_baseline_list[i],n_accept_bias_list[i], rt_cond, use_additive2_list[i]; simulate = false, add_choice_noise = false, fix_beta = false,  warp_fun = warp_fun_list[i], n_delta = n_delta_list[i]);
+    lik_fun = (params_in, sub_data) -> build_lik(params_in, sub_data, use_additive_list[i],warp_prob_list[i],warp_util_list[i],learn_prob_list[i],sub_baseline_list[i],n_accept_bias_list[i], rt_cond, use_additive2_list[i]; simulate = false,  warp_fun = warp_fun_list[i], n_delta = n_delta_list[i]);
 
     this_model["param_names"] = param_names;
     this_model["model_name"] = model_name;
@@ -92,6 +88,5 @@ for i in 1:n_models
     println(param_names)
 
     fit_model_em(this_model, data,to_save_folder, full = full, parallel = parallel, emtol = emtol, run_loo = true);
-    # fit_model_ml(this_model,data, to_save_folder; n_start = 20)
 end
 

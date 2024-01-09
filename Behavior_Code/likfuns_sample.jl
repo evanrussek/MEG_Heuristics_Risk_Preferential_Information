@@ -153,8 +153,7 @@ function sample_glm_lik2(params,sub_data; max_n_samples = 2, simulate = false, o
         n_sample_pmf = make_n_sample_pmf(length(possible_n_samples), ns_p, scale_p);
     end
     
-   # println(ns_p)
-   # println(n_sample_pmf)
+
     
     for trial_idx in 1:n_trials
         
@@ -184,36 +183,25 @@ function sample_glm_lik2(params,sub_data; max_n_samples = 2, simulate = false, o
         
         ######### Here, loop through the number of samples agent takes
         ## we need to marginalize accept probability over these...
-        
-
-        
-        
-        # try to only take an odd number of samples
+                
         for n_samples_idx = 1:length(possible_n_samples)
             
-            #n_samples_o1_idx = typeof(gain_power)[collect(0:1:n_samples);];
             n_samples = possible_n_samples[n_samples_idx];
             
             if do_UWS
-               # qmeta = make_qmeta_ard(p_o1, o1_u, o2_u, safe_u,n_samples);
                 qmeta = make_qmeta_FL(p_o1, o1_u, o2_u, safe_u)
             elseif do_Prob
                 qmeta = make_qmeta_prob(p_o1);
             end
                 
-                    # importance weights
+            # importance weights
             w = [p_o1, (1 - p_o1)] ./ qmeta;
 
             
             # possible number of samples which came out as O1 (one index for each possibility)
             n_samples_o1_idx = 0:1:n_samples;
-    
-            # probability of each of these possibilities
+                
             
-            
-            #this_distr = Distributions.Binomial{typeof(gain_power)}(n_samples,qmeta[1])
-            
-            #this_distr = convert(typeof(Binomial(1,.2)), this_distr)
             
             
             prob_draw_n_o1 = [binomial_pdf(n_samples_o1_idx[i], n_samples,qmeta[1]) for i in 1:length(n_samples_o1_idx)]
