@@ -1,6 +1,6 @@
 ### em options
 parallel = true # Run on multiple CPUs.
-full = false    # Maintain full covariance matrix (vs a diagional one) a the group level
+full = true    # Maintain full covariance matrix (vs a diagional one) a the group level
 emtol = 1e-3    # stopping condition (relative change) for EM
 first_run = false;
 split_on_rt = false;
