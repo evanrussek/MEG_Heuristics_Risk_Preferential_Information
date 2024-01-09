@@ -47,8 +47,6 @@ end
 
 # import other functions
 @everywhere include("$project_folder/descriptive/descriptive.jl")
-#@everywhere include("$project_folder/model_fitting/likfuns_sample.jl")
-#@everywhere include("$project_folder/model_fitting/likfuns_sample2.jl")
 @everywhere include("$project_folder/model_fitting/likfuns_sample2.jl")
 @everywhere include("$project_folder/model_fitting/model_fitting_functions.jl")
 
@@ -57,9 +55,7 @@ end
 
 # read in data and clean
 data_raw = CSV.read("$project_folder/data/meg_behavior.csv", DataFrame);
-# data = clean_data(data_raw; bad_subs = [1 4 8 19 24 26]) # 20, 23 could go back in for behavior only... 
-data = clean_data(data_raw; bad_subs = [1 4 8 19 20 23 24 26]);
-
+data = clean_data(data_raw)
 
 
 #### build models
@@ -73,7 +69,6 @@ this_model = Dict();
 this_model["param_names"] = param_names;
 this_model["model_name"] = model_name;
 this_model["likfun"] = lik_fun;
-# fit_model_em(this_model, data,to_save_folder, parallel = parallel, emtol = emtol, run_loo = true);
 
 # Fit the prob sample model
 param_names = ["choice_noise", "ns_p", "gain_power", "loss_power"];
