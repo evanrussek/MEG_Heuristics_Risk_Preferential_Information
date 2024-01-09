@@ -2,7 +2,6 @@
 % to pick a l1 penalty and make some classifier performance plots.
 
 % Enter path of MEG_Decision_Study folder
-study_folder =  'D:\MEG_Decision_Study';
 study_folder = '/Users/erussek/Dropbox/MEG_Decision_Study_WC';
 
 % Path to localizer activations
@@ -59,7 +58,6 @@ for pen_idx = 1:NPen
             other_im_both = all_im_idx(s_res.pred_labels(t_idx) ~= all_im_idx);
             first_other_im = other_im_both(2);
             other_prob(t_idx,:,:) = mean(pred_prob_mtx(t_idx,:,:,other_im_both),4);
-          %  other_prob(t_idx,:,:) = mean(pred_prob_mtx(t_idx,:,:,all_im_idx),4);
             correct_class(t_idx,:, :) = pred_class_mtx(t_idx, :, :) == s_res.pred_labels(t_idx);
             correct_outcome(t_idx,:, :) = pred_class_outcome_mtx(t_idx, :, :) == s_res.pred_labels(t_idx);
         end
@@ -72,7 +70,6 @@ for pen_idx = 1:NPen
         mn_prob_outcome_mtx = squeeze(mean(correct_prob(outcome_trials,:,:)));
         mn_prob_other_mtx = squeeze(mean(other_prob(outcome_trials,:,:)));
         
-     %   group_inv_log(pen_idx,s_idx,:,:) = mn_corr_inv_log_mtx;
         group_prob(pen_idx,s_idx, :, :) = mn_corr_prob_mtx;
         group_class(pen_idx, s_idx,:,:) = mn_corr_class_mtx;
         group_outcome(pen_idx,s_idx,:,:) = mn_corr_outcome_class_mtx;
@@ -82,10 +79,8 @@ for pen_idx = 1:NPen
     end
 end
 
-%% Select a penalty -- best one is .002.
+%% Select a penalty
 
-mn_class = squeeze(mean(group_outcome, 2)); % NPen x NTr x NTe
-sem_class = squeeze(std(group_outcome,1, 2))/sqrt(21); % NPen x NTr x NTe
 
 subj_mn_class = zeros(NPen, NS, NTr);
 for p_idx = 1:NPen
@@ -136,22 +131,5 @@ xlabel('Timepoint (ms) Rel. Out. Stim. Onset')
 
 shadedErrorBar(delay_vals_test, mean(this_subj_mn_class), std(this_subj_mn_class)./sqrt(NS)) %,'lineprops', {'color', 'gray'})
 
-%% Plot Diagonal of Accuracy Matrix
-group_mtx = squeeze(group_outcome(2,:,:,:));
-group_diag_corr = zeros(size(group_mtx,1), size(group_mtx,2));
-for s_idx = 1:NS
-    group_diag_corr(s_idx,:) = diag(squeeze(group_mtx(s_idx,:,:)));
-end
-close(figure(2))
-figure(2)
-hold on
-shadedErrorBar(delay_vals_test, mean(group_diag_corr), std(group_diag_corr)./sqrt(NS),'lineprops', {'color', 'red'})
-%yline(.3594, 'k--'); % permutation thresh. calculated in other script
-axis square
-axis([10, 500, .3, .65])
-ylabel('Cross-Validation Accuracy')
-xlabel('Timepoint (ms) Rel. Out. Stim. Onset')
 
-shadedErrorBar(delay_vals_test, mean(this_subj_mn_class), std(this_subj_mn_class)./sqrt(NS),'lineprops', {'color', 'blue'})
-legend({'Without Trial Removal','With Trial Removal'})
 

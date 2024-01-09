@@ -44,7 +44,6 @@ end
 
 %% LOAD REACTIVATION DATA
 group_struc_folder = fullfile(study_folder, 'Classifier_Activations', 'Task_Reactivations');
-% group_struc_folder = fullfile(study_folder, 'Classifier_Activations_Test', 'Task_Reactivations');
 
 subj_rp_data = cell(NS,1);
 for s_idx = 1:NS
@@ -62,8 +61,7 @@ temp = load(fullfile(study_folder, 'Behavioral_Params.mat'));
 beh_params = temp.Beh_Params;
 
 
-%% Run first level to predict O1 vs O2 from between trial conditions
-
+%% Run first level to predict O1 vs O2 from between trial conditions - also get mean safe activity
 
 
 % structure to store betas
@@ -97,12 +95,11 @@ for s_idx = 1:NS
 end
 
 
-%% which subjs to use for each analysis -- note no BIS data for subj. 1.
+%% which subjs to use for each analysis -- note no BIS data collected for subj. 1.
 keep_subj_neural = 1:NS;
 keep_subj_neuralQ = 2:NS;
 keep_subj_beh = 1:NS;
 keep_subj_BIS = 2:NS;
-
 
 
 %% Predict prob beh. from prob. neural
