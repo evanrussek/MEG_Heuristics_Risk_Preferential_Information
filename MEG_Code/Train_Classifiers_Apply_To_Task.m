@@ -2,7 +2,6 @@
 % and Apply to Epoched Task Choice Data
 
 % Enter path of MEG_Decision_Study folder
-study_folder =  'D:\MEG_Decision_Study';
 study_folder = '/Users/erussek/Dropbox/MEG_Decision_Study_WC';
 
 % add path to util folder
@@ -155,10 +154,8 @@ parfor s_idx = 1:length(subj_list)
         tdp_rs = reshape(tdp, size(tdp,1)*size(tdp,2), size(tdp,3)); % (n_epochs x n_timepoints) x n_sensors
         scaled_tdp_rs = scaleFunc(tdp_rs);
 
-        % compute multiple measures of projecting data onto beta weights
-        pred_act = scaled_tdp_rs*all_im_betas'; % check that scale func is being applied correctly    
-        pred_reg = scaled_tdp_rs*pinv([ones(size(all_im_betas,2),1) all_im_betas'])';
-        pred_reg2 = scaled_tdp_rs*pinv(all_im_betas')';
+        % project data onto beta weights
+        pred_act = scaled_tdp_rs*all_im_betas'; 
 
         % reshape
         pred_act_epoch = zeros(size(tdp,1), size(tdp,2), length(which_train_images));

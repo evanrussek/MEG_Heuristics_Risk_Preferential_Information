@@ -5,7 +5,7 @@ load(fullfile(subj_struct_fold,'last_event_times.mat'))
 
 is.highpass=0.5;
 
-const_pad = 3000; % this is 3 seconds that we add to the end of the block...;
+const_pad = 3000; % this is 3 seconds that we add to the end of the block
 spL = fullfile(study_folder,['Preprocessed_Data/Subj_', num2str(s_num),'/run_']);
 spN = fullfile(study_folder,['/MEG_data/Subj_', num2str(s_num)]);
 
@@ -30,11 +30,11 @@ for run_num_idx = 1:length(run_vec)
     ds_folder = [spN, '/', ds_str.name];
 
 
-    %% Import - CTF resting state using OPT
+    %% Import
     S = struct;
     S.fif_file = ds_folder;
     S.spm_file = fullfile(localPath,'spmeeg.mat');
-    S.other_channels = {'UADC001','UADC003','UADC005'}; %% check whether these are correct
+    S.other_channels = {'UADC001','UADC003','UADC005'};
 
     D = osl_convert_script(S);
     D = D.chantype(find(strcmp(D.chanlabels,'UADC001')),'EOG1');
@@ -165,7 +165,7 @@ for run_num_idx = 1:length(run_vec)
     opt4.outliers.do=0;
     opt4.bad_segments.do=0; 
 
-    %% coreg for subsequent source analysis - Already Done!
+    %% coreg for subsequent source analysis 
     opt4.coreg.do=1;
     opt4.coreg.use_rhino=0; 
     opt4.coreg.useheadshape=0;

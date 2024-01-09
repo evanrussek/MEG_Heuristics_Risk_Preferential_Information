@@ -15,7 +15,7 @@ group_struc_folder = fullfile(activation_folder, 'Loc_Reactivations');
 mkdir(group_struc_folder);
 
 % Parameters for the classifier
-p_l1_list = .002%.005:.001:.01;%.001:.001:.004; % L1 penalty
+p_l1_list = .005:.001:.01;%.001:.001:.004; % L1 penalty
 p_l2_list = 0;% L2 penalty
 delay_vals_train = -350:10:850; % timepoints on which to train classifier (millisecond, relative to iamge onset)
 delay_vals_test = -350:10:850; % tiempoints on which to test each classifier (millisecond, relative to image onset, on hold out data)
@@ -184,10 +184,8 @@ for pen_idx = 1:length(p_l1_list)% loop through penalty onset
                     tdp_rs = reshape(tdp, size(tdp,1)*size(tdp,2), size(tdp,3)); % (n_epochs x n_timepoints) x n_sensors
                     scaled_tdp_rs = scaleFunc(tdp_rs);
 
-                    % compute multiple measures of projecting data onto beta weights
-                    pred_act = scaled_tdp_rs*all_im_betas'; % check that scale func is being applied correctly    
-                    pred_reg = scaled_tdp_rs*pinv([ones(size(all_im_betas,2),1) all_im_betas'])';
-                    pred_reg_epoch_im = zeros(size(tdp,1), size(tdp,2), n_images);
+                    % project data onto beta weights
+                    pred_act = scaled_tdp_rs*all_im_betas';  
                     pred_act_epoch_im = zeros(size(tdp,1), size(tdp,2), n_images);
                     pred_inv_log_epoch_im = zeros(size(tdp,1), size(tdp,2), n_images);
 
@@ -206,8 +204,6 @@ for pen_idx = 1:length(p_l1_list)% loop through penalty onset
         end % end train time-point loop
         % make a folder to save the results..
 
-
-        
         subj_struc_folder = fullfile(group_struc_folder, ['Subj_', num2str(s_num)]);
         if ~exist(subj_struc_folder, 'dir')
             mkdir(subj_struc_folder);
